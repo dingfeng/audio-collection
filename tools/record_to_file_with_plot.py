@@ -13,9 +13,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
-
-
-
+import os
+import time
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -23,6 +22,13 @@ def int_or_str(text):
         return int(text)
     except ValueError:
         return text
+
+
+def mkdir(path):
+    folder = os.path.exists(path)
+    if not folder:
+        os.makedirs(path)
+
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument(
@@ -36,10 +42,10 @@ parser.add_argument(
 # parser.add_argument(
 #     '-c', '--channels', type=int, default=2, help='number of input channels')
 parser.add_argument(
-    'channels', type=int, default=[1,2], nargs='*', metavar='CHANNEL',
+    'channels', type=int, default=[1, 2], nargs='*', metavar='CHANNEL',
     help='input channels to plot (default: the first)')
 parser.add_argument(
-    'filename',  nargs='?', metavar='FILENAME',
+    'filename', nargs='?', metavar='FILENAME',
     help='audio file to store recording to')
 parser.add_argument(
     '-t', '--subtype', type=str, help='sound file subtype (e.g. "PCM_24")')
@@ -62,25 +68,123 @@ parser.add_argument('-id', '--input-device', type=int_or_str,
                     help='input device ID or substring')
 args = parser.parse_args()
 mapping = [c - 1 for c in args.channels]  # Channel numbers start with 1
-fileQueue=queue.Queue()
+fileQueue = queue.Queue()
 q = queue.Queue()
+running = True
 
 
-class PlotThreading(threading.Thread):
-    def __init__(self,file):
+class SaveThreading(threading.Thread):
+    def __init__(self, filepath):
         threading.Thread.__init__(self)
-        self._file=file
+        self._filepath = filepath
+
+    def run(self):
+        with sf.SoundFile(self._filepath, mode='x', samplerate=args.samplerate,
+                          channels=max(args.channels), subtype=args.subtype) as file:
+            while running:
+                file.write(fileQueue.get())
+        return
+
+
+class InputThreading(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self._functions = {'start': self.in_start, 'stop': self.in_stop, 'model': self.in_model, 'root': self.in_root,'count':self.in_count,'auto_record':self.in_auto_record,
+                           'show': self.in_show}
+        self._model = 'default_model'
+        self._count = 1
+        self._root = '.'
+        dir_path = self.get_dir_path()
+        mkdir(dir_path)
+        return
+
+    def get_dir_path(self):
+        return self._root + "/" + self._model
+
     def run(self):
         while True:
-            self._file.write(fileQueue.get())
-        pass
+            # try:
+            command = input("please input command:")
+            strs = command.split(" ")
+            action = strs[0]
+            arg = None
+            if (strs.__len__() > 1):
+                arg = strs[1]
+            if('auto_record' == action):
+                self._functions[action](int(strs[1]),int(strs[2]),int(strs[3]))
+            else :
+                func = self._functions[action]
+                if func is not None:
+                    func(arg)
+            print('#' * 80)
+            # except Exception as e:
+            #     print(e)
+        return
+
+    def in_start(self,delay=None):
+        global  fileQueue
+        global running
+        dir_path = self.get_dir_path()
+        filepath = dir_path + '/' + str(self._count) + ".wav"
+        self._count = self._count + 1
+        fileQueue = queue.Queue()
+        running = True
+        saveThread = SaveThreading(filepath)
+        saveThread.start()
+        return
+
+    def in_stop(self, arg=None):
+        global running
+        running = False
+        return
+
+    def in_model(self, name=None):
+        self._model = name
+        self._count = 1
+        dir_path = self.get_dir_path()
+        mkdir(dir_path)
+        return
+
+    def in_root(self, name=None):
+        self._root = name
+        self._count = 1
+        return
+
+    def in_count(self, name=None):
+        self._count = int(name)
+        return
+
+    def in_auto_record(self,interval,duration,num):
+        print("auto record starts...")
+        for i in range(num):
+            print("delay "+str(interval)+" seconds")
+            time.sleep(interval)
+            print("one loop start")
+            self.in_start()
+            print("duration " + str(duration) + " seconds")
+            time.sleep(duration)
+            self.in_stop()
+            print("one loop finishes")
+        print("auto record finishes")
+
+    def in_show(self, name):
+        print('#' * 80)
+        print('running: ' + str(running))
+        print("root: " + self._root)
+        print("model: " + self._model)
+        print("count: " + str(self._count))
+        print('#' * 80)
+        return
+
 
 def callback(indata, frames, time, status):
     """This is called (from a separate thread) for each audio block."""
     if status:
         print(status, file=sys.stderr)
     q.put(indata[::args.downsample, mapping])
-    fileQueue.put(indata.copy())
+    if running:
+        fileQueue.put(indata.copy())
+
 
 def update_plot(frame):
     global plotdata
@@ -96,10 +200,12 @@ def update_plot(frame):
         line.set_ydata(plotdata[:, column])
     return lines
 
+
 def direct_callback(indata, outdata, frames, time, status):
     if status:
         print(status)
     outdata[:] = indata
+
 
 try:
     if args.list_devices:
@@ -110,17 +216,8 @@ try:
         # soundfile expects an int, sounddevice provides a float:
         args.samplerate = int(device_info['default_samplerate'])
 
-    with sd.Stream(device=(args.input_device, args.output_device),
-                   samplerate=args.samplerate, blocksize=args.blocksize,
-                   dtype=args.dtype, latency=args.latency,callback=direct_callback,
-                   channels=max(args.channels)):
-        print('#' * 80)
-        print('press Return to quit')
-        print('#' * 80)
-        input()
     length = int(args.window * args.samplerate / (1000 * args.downsample))
     plotdata = np.zeros((length, len(args.channels)))
-
     fig, ax = plt.subplots()
     lines = ax.plot(plotdata)
     if len(args.channels) > 1:
@@ -136,21 +233,19 @@ try:
     if args.filename is None:
         args.filename = tempfile.mktemp(prefix='delme_rec_unlimited_',
                                         suffix='.wav', dir='')
-    # Make sure the file is opened before recording anything:
-
     stream = sd.InputStream(samplerate=args.samplerate, device=args.device,
-                   channels=max(args.channels), callback=callback)
+                            channels=max(args.channels), callback=callback)
     ani = FuncAnimation(fig, update_plot, interval=args.interval, blit=True)
-
-    with sf.SoundFile(args.filename, mode='x', samplerate=args.samplerate,
-                      channels=max(args.channels), subtype=args.subtype) as file:
-        with stream:
-            print('#' * 80)
-            print('press Ctrl+C to stop the recording')
-            print('#' * 80)
-            plotThread = PlotThreading(file)
-            plotThread.start()
-            # plt.show()
+    with stream:
+        print('#' * 80)
+        print('command list:')
+        print('start #delay(s)')
+        print('stop')
+        print('model #directoryname')
+        print('root #rootDirectory')
+        print('#' * 80)
+        InputThreading().start()
+        plt.show()
 
 # except KeyboardInterrupt:
 #     print('\nRecording finished: ' + repr(args.filename))
