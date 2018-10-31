@@ -243,6 +243,7 @@ try:
         print('stop')
         print('model #directoryname')
         print('root #rootDirectory')
+        print('auto_record #interval #duration #num')
         print('#' * 80)
         InputThreading().start()
         plt.show()
