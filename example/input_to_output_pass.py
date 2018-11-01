@@ -29,12 +29,15 @@ args = parser.parse_args()
 try:
     import sounddevice as sd
     import numpy  # Make sure NumPy is loaded before it is used in the callback
+
     assert numpy  # avoid "imported but unused" message (W0611)
+
 
     def callback(indata, outdata, frames, time, status):
         if status:
             print(status)
         outdata[:] = indata
+
 
     with sd.Stream(device=(args.input_device, args.output_device),
                    samplerate=args.samplerate, blocksize=args.blocksize,

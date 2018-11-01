@@ -14,7 +14,7 @@ def int_or_str(text):
         return text
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('-f','--filename',  default="../tools/default_model/2.wav", help='audio file to be played back')
+parser.add_argument('-f','--filename',  default="../tools/j_c_smoothed/2.wav", help='audio file to be played back')
 parser.add_argument('-d', '--device', type=int_or_str,
                     help='output device (numeric ID or substring)')
 args = parser.parse_args()
@@ -28,7 +28,9 @@ try:
     plt.plot(data[:,0],label='channel 1')
     plt.legend()
     plt.show()
-
+    start=int(input('input start index:'))
+    end=int(input("input end index:"))
+    data[start:end,:]
 
 except KeyboardInterrupt:
     parser.exit('\nInterrupted by user')
