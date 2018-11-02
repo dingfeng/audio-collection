@@ -12,15 +12,22 @@ import sys
 import threading
 
 
-log_dir = './logs'
-logging.basicConfig(filename=(log_dir + "keylogger.txt"), format="%(message)s",
+log_dir = './data'
+logging.basicConfig(filename=(log_dir + "/keylogger.txt"), format="%(message)s",
                     level=logging.INFO)
-
+key_count=0
+start_time=None
 def press(key):
-    logging.info('press {} {}'.format(time.time(),str(key)))
-
-def release(key):
-    logging.info('release {} {}'.format(time.time(),str(key)))
+    global key_count
+    global start_time
+    if(key_count < 5 and str(key)=='Key.enter'):
+        key_count=1+key_count
+        if(key_count==5):
+            start_time=time.time()
+            logging.info("start {} start".format(start_time,))
+        return
+    if(start_time is not None):
+        logging.info('press {} {}'.format(time.time()-start_time,str(key)))
 
 
 
@@ -29,10 +36,8 @@ class Listener_Thread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        with Listener(on_press=press, on_release=release) as listener:
+        with Listener(on_press=press) as listener:
             listener.join()
-
-
 
 
 def int_or_str(text):
@@ -54,7 +59,7 @@ parser.add_argument(
 parser.add_argument(
     '-c', '--channels', type=int, default=2, help='number of input channels')
 parser.add_argument(
-    'filename', nargs='?', metavar='FILENAME',
+    'filename', nargs='?', default='./data/data.wav', metavar='FILENAME',
     help='audio file to store recording to')
 parser.add_argument(
     '-t', '--subtype', type=str, help='sound file subtype (e.g. "PCM_24")')
@@ -91,8 +96,10 @@ try:
             print('#' * 80)
             print('press Ctrl+C to stop the recording')
             print('#' * 80)
+            Listener_Thread().start()
             while True:
                 file.write(q.get())
+
 
 except KeyboardInterrupt:
     print('\nRecording finished: ' + repr(args.filename))
