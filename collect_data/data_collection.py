@@ -10,10 +10,11 @@ import tempfile
 import queue
 import sys
 import threading
+import uuid
 
-
+file_prefix=str(uuid.uuid1())
 log_dir = './data'
-logging.basicConfig(filename=(log_dir + "/keylogger.txt"), format="%(message)s",
+logging.basicConfig(filename=(log_dir + "/"+file_prefix+"_keylogger.txt"), format="%(message)s",
                     level=logging.INFO)
 key_count=0
 start_time=None
@@ -59,7 +60,7 @@ parser.add_argument(
 parser.add_argument(
     '-c', '--channels', type=int, default=2, help='number of input channels')
 parser.add_argument(
-    'filename', nargs='?', default='./data/data.wav', metavar='FILENAME',
+    'filename', nargs='?', metavar='FILENAME',
     help='audio file to store recording to')
 parser.add_argument(
     '-t', '--subtype', type=str, help='sound file subtype (e.g. "PCM_24")')
@@ -78,8 +79,7 @@ try:
         # soundfile expects an int, sounddevice provides a float:
         args.samplerate = int(device_info['default_samplerate'])
     if args.filename is None:
-        args.filename = tempfile.mktemp(prefix='delme_rec_unlimited_',
-                                        suffix='.wav', dir='')
+        args.filename = log_dir+"/"+file_prefix+"_data.wav"
     q = queue.Queue()
 
     def callback(indata, frames, time, status):
