@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 # filename: char_count_census date: 2018/11/2 16:39  
 # author: FD
-filename = './input_file_data/Keyboard Acoustic Emanations Revisited.txt'
+filename = './input_file_data/acoustic_introduction.txt'
 f = open(filename, 'r',encoding='utf8')
 content = f.read()
 census_data = {}
