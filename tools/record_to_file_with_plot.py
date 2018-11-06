@@ -15,6 +15,8 @@ import sounddevice as sd
 import soundfile as sf
 import os
 import time
+from queue import Empty
+
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -82,14 +84,19 @@ class SaveThreading(threading.Thread):
         with sf.SoundFile(self._filepath, mode='x', samplerate=args.samplerate,
                           channels=max(args.channels), subtype=args.subtype) as file:
             while running:
-                file.write(fileQueue.get())
+                try:
+                    data = fileQueue.get(timeout=2)
+                    file.write(data)
+                except Empty as ee:
+                    print('filepath = {} timeout empty ee = {}'.format(self._filepath, ee))
         return
 
 
 class InputThreading(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self._functions = {'start': self.in_start, 'stop': self.in_stop, 'model': self.in_model, 'root': self.in_root,'count':self.in_count,'auto_record':self.in_auto_record,
+        self._functions = {'start': self.in_start, 'stop': self.in_stop, 'model': self.in_model, 'root': self.in_root,
+                           'count': self.in_count, 'auto_record': self.in_auto_record,
                            'show': self.in_show}
         self._model = 'default_model'
         self._count = 1
@@ -110,9 +117,9 @@ class InputThreading(threading.Thread):
             arg = None
             if (strs.__len__() > 1):
                 arg = strs[1]
-            if('auto_record' == action):
-                self._functions[action](int(strs[1]),int(strs[2]),int(strs[3]))
-            else :
+            if ('auto_record' == action):
+                self._functions[action](int(strs[1]), int(strs[2]), int(strs[3]))
+            else:
                 func = self._functions[action]
                 if func is not None:
                     func(arg)
@@ -121,8 +128,8 @@ class InputThreading(threading.Thread):
             #     print(e)
         return
 
-    def in_start(self,delay=None):
-        global  fileQueue
+    def in_start(self, delay=None):
+        global fileQueue
         global running
         dir_path = self.get_dir_path()
         filepath = dir_path + '/' + str(self._count) + ".wav"
@@ -154,14 +161,14 @@ class InputThreading(threading.Thread):
         self._count = int(name)
         return
 
-    def in_auto_record(self,interval,duration,num):
+    def in_auto_record(self, interval, duration, num):
         print("auto record starts...")
         for i in range(num):
-            print("delay "+str(interval)+" seconds")
+            print("delay " + str(interval) + " seconds")
             time.sleep(interval)
             print("one loop start")
             self.in_start()
-            print("duration " + str(duration) + " seconds")
+            print("duration " + str(duration) + " seconds !!!!!!!!!!!!!!!")
             time.sleep(duration)
             self.in_stop()
             print("one loop finishes")
@@ -216,7 +223,7 @@ try:
         # soundfile expects an int, sounddevice provides a float:
         args.samplerate = int(device_info['default_samplerate'])
 
-    length = int(args.window * args.samplerate / (1000 * args.downsample))
+    length = int(args.window * args.samplerate / (1000 * args.downsample))  # 200ms
     plotdata = np.zeros((length, len(args.channels)))
     fig, ax = plt.subplots()
     lines = ax.plot(plotdata)
@@ -253,3 +260,4 @@ try:
 #     parser.exit(0)
 except Exception as e:
     parser.exit(type(e).__name__ + ': ' + str(e))
+    #

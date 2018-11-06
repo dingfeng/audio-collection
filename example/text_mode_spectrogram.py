@@ -86,7 +86,7 @@ try:
                         samplerate=samplerate):
         while True:
             response = input()
-            if response in ('', 'q', 'Q'):
+            if response in ('', 'j', 'Q'):
                 break
             for ch in response:
                 if ch == '+':

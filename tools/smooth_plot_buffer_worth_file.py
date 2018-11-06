@@ -16,7 +16,7 @@ def int_or_str(text):
         return text
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('-f','--filename',  default="../tools/j_u/2.wav", help='audio file to be played back')
+parser.add_argument('-f','--filename',  default="../collect_data/data/j.wav", help='audio file to be played back')
 parser.add_argument('-d', '--device', type=int_or_str,
                     help='output device (numeric ID or substring)')
 parser.add_argument(
@@ -33,12 +33,13 @@ def butter_lowpass_filter(data, cut, fs, order, zero_phase=False):
     return y
 
 
+
 def smooth_and_write_to_file(source,dest):
     try:
         import soundfile as sf
         data, fs = sf.read(source, dtype='float32')
         fs = 44100
-        low_freq=200
+        low_freq=100
         order=5
         y1 = butter_lowpass_filter(data[:, 0], low_freq, fs, order)
         y2 = butter_lowpass_filter(data[:, 1], low_freq, fs, order)
@@ -52,22 +53,22 @@ def smooth_and_write_to_file(source,dest):
 
 
 if __name__ == '__main__':
-    dir_names=['j_c','j_u','k_c','l_c']
-    root='.'
-    for dir_name in dir_names:
-        dir_path=''.join([root,'/',dir_name])
-        dest_dir_path=''.join([dir_path,'_smoothed'])
-        if(not os.path.isdir(dest_dir_path)):
-            os.mkdir(dest_dir_path,0o0755)
-        indir_files=os.listdir(dir_path)
-        for file in indir_files:
-            if(file.endswith('wav')):
-                #wav file wathdir
-                source_file_path=''.join([dir_path,'/',file])
-                dest_file_path=''.join([dest_dir_path,'/',file])
-                if(os.path.exists(dest_file_path)):
-                    os.remove(dest_file_path)
-                smooth_and_write_to_file(source_file_path,dest_file_path)
-
+    # dir_names=['j_c','j_u','k_c','l_c']
+    # root='.'
+    # for dir_name in dir_names:
+    #     dir_path=''.join([root,'/',dir_name])
+    #     dest_dir_path=''.join([dir_path,'_smoothed'])
+    #     if(not os.path.isdir(dest_dir_path)):
+    #         os.mkdir(dest_dir_path,0o0755)
+    #     indir_files=os.listdir(dir_path)
+    #     for file in indir_files:
+    #         if(file.endswith('wav')):
+    #             #wav file wathdir
+    #             source_file_path=''.join([dir_path,'/',file])
+    #             dest_file_path=''.join([dest_dir_path,'/',file])
+    #             if(os.path.exists(dest_file_path)):
+    #                 os.remove(dest_file_path)
+    #             smooth_and_write_to_file(source_file_path,dest_file_path)
+    smooth_and_write_to_file("default_model/1.wav", 'smoothed_low.wav')
 
 

@@ -45,7 +45,7 @@ try:
                    channels=args.channels, callback=callback):
         print('#' * 80)
         print('press Return to quit')
-        print('#' * 80)
+        print('#' * 80);
         input()
 except KeyboardInterrupt:
     parser.exit('\nInterrupted by user')

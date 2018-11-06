@@ -14,7 +14,7 @@ def int_or_str(text):
         return text
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('-f','--filename',  default="../tools/j_c_smoothed/2.wav", help='audio file to be played back')
+parser.add_argument('-f','--filename',  default="./sdfsdf3.wav", help='audio file to be played back')
 parser.add_argument('-d', '--device', type=int_or_str,
                     help='output device (numeric ID or substring)')
 args = parser.parse_args()
@@ -25,7 +25,7 @@ try:
     shape = data.shape
     plt.figure()
     plt.title('acoustic line')
-    plt.plot(data[:,0],label='channel 1')
+    plt.plot(1/44100*np.arange(len(data[:,0])),data[:,0],label='channel 1')
     plt.legend()
     plt.show()
     start=int(input('input start index:'))
