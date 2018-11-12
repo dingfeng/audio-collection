@@ -62,7 +62,7 @@ class Status_Manager():
     min_key_touch_time = 0.4
 
     def __init__(self, trigger):
-        print(Status_Manager.min_touch_key_time)
+        # print(Status_Manager.min_touch_key_time)
         self._status = 0
         # self._keyboard_controller = Controller()
         self._last_touch_time = 0

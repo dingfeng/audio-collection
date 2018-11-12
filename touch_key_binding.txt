@@ -1,0 +1,2 @@
+j=ctrl+shift+f
+f=ctrl+shift+e
