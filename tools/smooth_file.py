@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.io import wavfile
 import soundfile as sf
-data, fs = sf.read('smoothed_low.wav', dtype='float32')
+data, fs = sf.read('smoothed_high2.wav', dtype='float32')
 
-plt.specgram(data[:,0],NFFT=512,Fs=fs,noverlap=10)
+plt.specgram(data[:,0],NFFT=500,Fs=fs,noverlap=400)
 plt.xlabel('Time')
 plt.ylabel('Frequency')
 plt.show()

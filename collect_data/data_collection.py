@@ -91,7 +91,7 @@ try:
     # Make sure the file is opened before recording anything:
     with sf.SoundFile(args.filename, mode='x', samplerate=args.samplerate,
                       channels=args.channels, subtype=args.subtype) as file:
-        with sd.InputStream(samplerate=args.samplerate, device=args.device,
+        with sd.InputStream(samplerate=args.samplerate, device=device_info['name'],
                             channels=args.channels, callback=callback):
             print('#' * 80)
             print('press Ctrl+C to stop the recording')

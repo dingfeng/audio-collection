@@ -40,7 +40,7 @@ parser.add_argument(
     '-d', '--device', type=int_or_str,
     help='input device (numeric ID or substring)')
 parser.add_argument(
-    '-r', '--samplerate', type=int, help='sampling rate')
+    '-r', '--samplerate', default=16000, type=int, help='sampling rate')
 # parser.add_argument(
 #     '-c', '--channels', type=int, default=2, help='number of input channels')
 parser.add_argument(
@@ -186,6 +186,7 @@ class InputThreading(threading.Thread):
 
 def callback(indata, frames, time, status):
     """This is called (from a separate thread) for each audio block."""
+    # print('time {} {} {}'.format(time.inputBufferAdcTime,time.currentTime,time.er))
     if status:
         print(status, file=sys.stderr)
     q.put(indata[::args.downsample, mapping])
@@ -221,7 +222,7 @@ try:
     if args.samplerate is None:
         device_info = sd.query_devices(args.device, 'input')
         # soundfile expects an int, sounddevice provides a float:
-        args.samplerate = int(device_info['default_samplerate'])
+        args.samplerate =  16000#int(device_info['default_samplerate'])
 
     length = int(args.window * args.samplerate / (1000 * args.downsample))  # 200ms
     plotdata = np.zeros((length, len(args.channels)))

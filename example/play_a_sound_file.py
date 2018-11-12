@@ -12,8 +12,10 @@ def int_or_str(text):
     except ValueError:
         return text
 
+
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('-f','--filename',  default="../tools/default_model/1.wav", help='audio file to be played back')
+parser.add_argument('-f', '--filename', default="../tools/ultrasonic2.wav", help='audio file to be played back')
+# parser.add_argument('-f', '--filename', default="../tools/default_model/1.wav", help='audio file to be played back')
 parser.add_argument('-d', '--device', type=int_or_str,
                     help='output device (numeric ID or substring)')
 args = parser.parse_args()
@@ -21,8 +23,9 @@ args = parser.parse_args()
 try:
     import sounddevice as sd
     import soundfile as sf
+
     data, fs = sf.read(args.filename, dtype='float32')
-    sd.play(data, fs, device=args.device)
+    sd.play(data, fs, device=args.device,loop=True)
     status = sd.wait()
     if status:
         parser.exit('Error during playback: ' + str(status))

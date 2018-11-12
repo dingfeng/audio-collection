@@ -27,7 +27,7 @@ parser.add_argument(
     '-d', '--device', type=int_or_str,
     help='input device (numeric ID or substring)')
 parser.add_argument(
-    '-w', '--window', type=float, default=3000, metavar='DURATION',
+    '-w', '--window', type=float, default=500, metavar='DURATION',
     help='visible time slot (default: %(default)s ms)')
 parser.add_argument(
     '-i', '--interval', type=float, default=30,
@@ -40,7 +40,7 @@ parser.add_argument(
     '-n', '--downsample', type=int, default=10, metavar='N',
     help='display every Nth sample (default: %(default)s)')
 parser.add_argument(
-    'channels', type=int, default=[1,2], nargs='*', metavar='CHANNEL',
+    'channels', type=int, default=[1, 2], nargs='*', metavar='CHANNEL',
     help='input channels to plot (default: the first)')
 args = parser.parse_args()
 if any(c < 1 for c in args.channels):
@@ -89,7 +89,7 @@ try:
         parser.exit(0)
     if args.samplerate is None:
         device_info = sd.query_devices(args.device, 'input')
-        args.samplerate = device_info['default_samplerate']
+        args.samplerate = 16000#192000  # device_info['default_samplerate']
 
     length = int(args.window * args.samplerate / (1000 * args.downsample))
     plotdata = np.zeros((length, len(args.channels)))

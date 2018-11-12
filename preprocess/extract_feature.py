@@ -32,10 +32,11 @@ def extract_feature_dir(dir):
 def get_mfcc_data(data, fs):
     new_data = []
     for i in range(data.shape[1]):
-        one_channel_mfcc = mfcc(data[:, i], samplerate=fs, winlen=0.010, winstep=0.005, highfreq=200)
-        one_channel_mfcc = normalize(one_channel_mfcc)
+        winlen = len(data[:, i]) / fs
+        one_channel_mfcc = mfcc(data[:, i], samplerate=fs, winlen=winlen, nfft=len(data[:, i]), winstep=1, highfreq=5000)
+        # one_channel_mfcc = normalize(one_channel_mfcc)
         new_data += [one_channel_mfcc]
-    new_data = np.asarray(new_data).transpose(1, 2, 0)
+    new_data = np.asarray(new_data)  # .transpose(1, 2, 0)
     return new_data
 
 
