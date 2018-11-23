@@ -46,7 +46,9 @@ class Audio_Manager(threading.Thread):
                 energy = (abs(win_f[5]) ** 2 + abs(win_f[6]) ** 2)
                 total_energy = np.sum(np.square(abs(win_f)))
                 touch_energy_rate = energy / total_energy
-                if touch_energy_rate > 0.15 and energy < 1000:
+                # print('total_energy {} energy {}'.format(total_energy,energy))
+                # if touch_energy_rate > 0.15 and energy < 1000:
+                if energy > 100 and energy < 1000:
                     continous = True
                     self._status_manager.touch_update()
                 else:
@@ -57,9 +59,9 @@ class Audio_Manager(threading.Thread):
 
 
 class Status_Manager():
-    min_touch_key_time = 0.05
-    max_touch_key_time = 1.3
-    min_key_touch_time = 0.4
+    min_touch_key_time = 0.03
+    max_touch_key_time = 2.0
+    min_key_touch_time = 0.5
 
     def __init__(self, trigger):
         # print(Status_Manager.min_touch_key_time)

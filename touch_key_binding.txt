@@ -1,2 +1,8 @@
 j=ctrl+shift+f
 f=ctrl+shift+e
+c=alt+f4
+w=b+a+i+d+u+.+c+o+m
+n=d+i+n+g+f+e+n+g
+u=page_up
+i=page_down
+t=ctrl+t
